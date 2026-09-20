@@ -5,10 +5,10 @@ folder is named `FlowDo` and that Xcode is installed.
 
 ## 1. Open the project
 
-Open Terminal and enter the repository using paths relative to this file:
+If Terminal is currently in `FlowDo/docs`, enter the repository root:
 
 ```sh
-cd ../..
+cd ..
 open macos/FlowDo.xcodeproj
 ```
 
@@ -60,11 +60,14 @@ Click the orb and start one task. Then check:
 
 1. The orb progresses red → yellow → green while you work.
 2. Reengagement and state changes use three-second whirlpool transitions.
-3. After the idle grace period, timers pause and the orb steps back one color.
+3. After the idle grace period, timers pause. Each additional idle interval steps
+   back again: green → yellow → red → dimmed break.
 4. **Task Complete!** shows the heart-and-flame completion effect.
 5. Preferences contains the badge position, idle grace, checkpoint interval,
    pulse, and optional local activity logging controls.
-6. The task badge can be dismissed and restored from the menu.
+6. The task badge can be moved by its top handle, resized at the lower-right grip,
+   dismissed, and restored from the menu.
+7. **Background music → Choose MP3…** imports and loops a local track.
 
 For fast manual testing, enable **Fast thresholds for testing** in Preferences.
 

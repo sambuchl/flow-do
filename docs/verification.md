@@ -124,6 +124,13 @@ tests. The pulse/idle/badge behavior and energy impact still need Mac verificati
 
 ## Local MP3 playback (Mac verification required)
 
+Badge layout check: the default width is 180 pixels (previously 360). Drag the
+top handle across the desktop, then resize using the lower-right grip or edges.
+Try a long task title at narrow and wide sizes: text wraps, timers remain readable,
+and overflow scrolls. Hide/show and rename the task: the moved position and size
+must remain. Selecting another corner must reposition it. Check × still dismisses
+the badge without completing the task. These window interactions require macOS.
+
 - In Preferences, choose a short MP3. Hear it repeat beyond its end; verify volume
   and Play music controls. Silence encoded at the file boundaries remains audible.
 - Change orb states and complete/start tasks: music must continue without restarting.
