@@ -22,10 +22,13 @@ commands in the host-side `FlowDo` repository directory (the directory mounted a
 `/workspace/FlowDo` in this container):
 
 ```sh
+## BUILD & TEST FIRST
 open macos/FlowDo.xcodeproj
 xcodebuild -project macos/FlowDo.xcodeproj -scheme FlowDo \
   -configuration Debug -destination 'platform=macOS' \
   -derivedDataPath macos/DerivedData CODE_SIGNING_ALLOWED=NO build test
+
+## RUN
 open macos/DerivedData/Build/Products/Debug/FlowDo.app
 ```
 
