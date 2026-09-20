@@ -166,3 +166,20 @@ been compiled or run here: neither
 Swift nor Xcode is installed. Docker Compose is not available in this container,
 so the supplied Compose image itself has not been built. See
 [the Mac acceptance checklist](docs/verification.md) before considering M1 verified.
+
+## License
+
+FlowDo is **source-available for noncommercial use** under the [PolyForm
+Noncommercial License 1.0.0](https://polyformproject.org/licenses/noncommercial/1.0.0).
+
+You may use, study, modify, fork, and distribute FlowDo for noncommercial
+purposes subject to the terms in the [`LICENSE`](LICENSE) file.
+
+**Commercial use requires a separate license.** If you'd like to use FlowDo
+commercially, please contact **Sam Buchl on GitHub**.
+
+Contributions are welcome. For substantial contributions, FlowDo may require a
+Contributor License Agreement (CLA) so the project can continue to be offered
+under both noncommercial and commercial licenses.
+
+Copyright © 2026 Samuel C. Buchl.
