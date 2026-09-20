@@ -1,0 +1,17 @@
+# Local architecture references
+references/microblog/
+.env
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+server/instance/
+*.db
+.DS_Store
+.build/
+DerivedData/
+.swiftpm/
+*.xcuserstate
+xcuserdata/
+# Local activity report exports
+flowdo-activity*.tsv
