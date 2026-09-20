@@ -73,13 +73,13 @@ final class EngagementEngineTests: XCTestCase {
         XCTAssertEqual(engine.creditedThisTick, 0)
     }
 
-    func testLongInactivityHoldsOneStepBackAndActivityResumesCounters() {
+    func testLongInactivityReachesRedAndActivityResumesCounters() {
         work(seconds: 240)
         for age in 1...120 {
             clock.advance(1)
             engine.tick(activityAge: Double(age))
         }
-        XCTAssertEqual(engine.state, .returning)
+        XCTAssertEqual(engine.state, .idle)
         XCTAssertTrue(engine.isIdle)
         XCTAssertEqual(engine.continuousActiveDuration, 300)
         clock.advance(1)
@@ -96,6 +96,40 @@ final class EngagementEngineTests: XCTestCase {
         XCTAssertEqual(engine.state, .engaged)
         XCTAssertEqual(engine.continuousActiveDuration, 240)
         XCTAssertEqual(engine.creditedThisTick, 0)
+    }
+
+    func testIdleRetreatsAtEachConfiguredIntervalAndResumesFromBreak() {
+        var configuration = EngagementConfiguration.production
+        configuration.idleGrace = 10
+        engine = EngagementEngine(configuration: configuration, clock: clock)
+        work(seconds: 240)
+        for age in 1...40 {
+            clock.advance(1)
+            engine.tick(activityAge: Double(age))
+            XCTAssertEqual(engine.state, age < 10 ? .engaged : (age < 20 ? .returning : .idle))
+            XCTAssertEqual(engine.isTakingBreak, age >= 30)
+            XCTAssertEqual(engine.continuousActiveDuration, 240 + Double(min(age, 10)))
+            if age >= 10 { XCTAssertNil(engine.sessionID) }
+        }
+        engine.tick(activityAge: 0)
+        XCTAssertFalse(engine.isTakingBreak)
+        XCTAssertFalse(engine.isIdle)
+        XCTAssertEqual(engine.state, .engaged)
+        XCTAssertEqual(engine.continuousActiveDuration, 250)
+        XCTAssertNotNil(engine.sessionID)
+        engine.reset()
+        XCTAssertFalse(engine.isTakingBreak)
+    }
+
+    func testYellowReachesBreakAfterTwoIntervals() {
+        work(seconds: 10)
+        for age in 1...120 {
+            clock.advance(1)
+            engine.tick(activityAge: Double(age))
+            XCTAssertEqual(engine.state, age < 60 ? .returning : .idle)
+            XCTAssertEqual(engine.isTakingBreak, age >= 120)
+        }
+        XCTAssertEqual(engine.continuousActiveDuration, 70)
     }
 
     func testResetDiscardsPreviousEngagement() {
@@ -219,7 +253,7 @@ final class EngagementEngineTests: XCTestCase {
         }
     }
 
-    func testConfiguredGraceMakesYellowStepToRedOnlyOnce() {
+    func testConfiguredGraceMakesYellowStepToRedThenBreak() {
         var configuration = EngagementConfiguration.production
         configuration.idleGrace = 15
         engine = EngagementEngine(configuration: configuration, clock: clock)
@@ -230,6 +264,7 @@ final class EngagementEngineTests: XCTestCase {
         }
         XCTAssertEqual(engine.state, .idle)
         XCTAssertTrue(engine.isIdle)
+        XCTAssertTrue(engine.isTakingBreak)
         XCTAssertEqual(engine.continuousActiveDuration, 25)
         XCTAssertEqual(engine.creditedThisTick, 0)
         engine.tick(activityAge: 0)

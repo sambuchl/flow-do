@@ -15,6 +15,8 @@ struct PreferencesView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
+            BackgroundMusicPreferences(music: model.music)
+            Divider()
             Toggle("Show task badge", isOn: Binding(
                 get: { model.badgeVisible }, set: { if $0 { model.showBadge() } else { model.hideBadge() } }))
                 .disabled(model.currentTask == nil)
@@ -37,7 +39,7 @@ struct PreferencesView: View {
                 idleError = nil
             }
             if let error = idleError { Text(error).font(.caption) }
-            Text("After the grace period, timers pause and the orb steps back one color. Activity resumes the frozen counters. Saving starts a new session; total time is kept.")
+            Text("Each idle interval steps back: green → yellow → red → dimmed break. Timers freeze after the first interval; activity resumes them. Saving starts a new session; total time is kept.")
                 .font(.caption).foregroundStyle(.secondary)
             Divider()
             Toggle("Pulse", isOn: Binding(get: { model.pulseEnabled }, set: { model.setPulseEnabled($0) }))
@@ -88,7 +90,7 @@ struct PreferencesView: View {
             }.pickerStyle(.radioGroup)
             Button("Save checkpoint interval", action: saveCheckpoint)
             if let error = checkpointError { Text(error).font(.caption) }
-            Text("Repeats during each engagement session. Blank or 0 turns checkpoints off. Pink also marks reaching green. Saving starts a new session; total time is kept.")
+            Text("Repeats during each engagement session. Blank or 0 turns checkpoints off. Saving starts a new session; total time is kept.")
                 .font(.caption).foregroundStyle(.secondary)
             Divider()
             Toggle("Log activity locally", isOn: Binding(
@@ -131,6 +133,32 @@ struct PreferencesView: View {
         model.setCheckpoint(value: number, unit: unit)
         checkpoint = String(model.checkpointValue)
         checkpointError = nil
+    }
+}
+
+private struct BackgroundMusicPreferences: View {
+    @ObservedObject var music: BackgroundMusic
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Background music").font(.headline)
+            Button(music.importing ? "Importing…" : "Choose MP3…") { music.chooseMP3() }
+                .disabled(music.importing)
+            if let name = music.trackName {
+                Text(name).font(.caption).lineLimit(2).help(name)
+                Toggle("Play music", isOn: Binding(get: { music.enabled }, set: { music.setEnabled($0) }))
+                HStack {
+                    Text("Volume")
+                    Slider(value: Binding(get: { music.volume }, set: { music.setVolume($0) }), in: 0...1)
+                        .accessibilityLabel("Music volume")
+                    Text("\(Int(music.volume * 100))% ").monospacedDigit()
+                }
+                Button("Remove MP3") { music.removeTrack() }.disabled(music.importing)
+            }
+            if let error = music.errorMessage { Text(error).font(.caption) }
+            Text("Loops locally, including between tasks. Pause FlowDo pauses music; Resume continues it. The track and volume are remembered.")
+                .font(.caption).foregroundStyle(.secondary)
+        }
     }
 }
 

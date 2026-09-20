@@ -9,7 +9,8 @@ clock, not elapsed wall time since task creation.
 
 Thinking/reading pauses count throughout the configured idle grace (default 60
 seconds, shared by production/debug modes). At grace expiry, both counters freeze
-and the orb retreats one step, holding there. Activity resumes the same counters;
+and the orb retreats once per grace interval through yellow, red, and dimmed break.
+Activity resumes the same counters;
 the log closes and reopens engagement instances using counter baselines, so those
 instances do not double-count previously credited time.
 

@@ -8,7 +8,7 @@ struct SystemEngagementClock: EngagementClock {
     var now: TimeInterval { ProcessInfo.processInfo.systemUptime }
 }
 
-/// Deterministic inference with a grace window, frozen idle counters, and one-step retreat.
+/// Deterministic inference with frozen idle counters and one retreat per grace interval.
 final class EngagementEngine {
     private let clock: EngagementClock
     let configuration: EngagementConfiguration
@@ -19,6 +19,8 @@ final class EngagementEngine {
     private(set) var state: FlowState = .idle
     private(set) var confidence: Double = 0
     private(set) var isIdle = true
+    private(set) var isTakingBreak = false
+    private var idleOrigin: FlowState?
     private(set) var achievement = false
     private(set) var achievementReason: String?
     private(set) var sessionID: UUID?
@@ -39,6 +41,8 @@ final class EngagementEngine {
         state = .idle
         confidence = 0
         isIdle = true
+        isTakingBreak = false
+        idleOrigin = nil
         sessionID = nil
         clearTick()
     }
@@ -51,6 +55,7 @@ final class EngagementEngine {
 
     private func enterIdle() {
         guard !isIdle else { return }
+        idleOrigin = state
         isIdle = true
         sessionID = nil
         confidence = 0.25
@@ -94,10 +99,24 @@ final class EngagementEngine {
         }
         if inactivity >= grace {
             enterIdle()
+            let steps = inactivity / grace
+            switch idleOrigin ?? .idle {
+            case .engaged:
+                state = steps >= 2 ? .idle : .returning
+                isTakingBreak = steps >= 3
+            case .returning:
+                state = .idle
+                isTakingBreak = steps >= 2
+            case .idle:
+                state = .idle
+                isTakingBreak = true
+            }
             return
         }
         if isIdle {
             isIdle = false
+            isTakingBreak = false
+            idleOrigin = nil
             sessionID = UUID()
         }
         confidence = 1

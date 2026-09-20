@@ -23,6 +23,7 @@ enum CheckpointUnit: String, CaseIterable, Identifiable {
 
 @MainActor
 final class FlowDoModel: ObservableObject {
+    let music: BackgroundMusic
     @Published private(set) var currentTask: CurrentTask?
     @Published private(set) var state: FlowState = .idle
     @Published private(set) var confidence: Double = 0
@@ -42,6 +43,7 @@ final class FlowDoModel: ObservableObject {
     @Published private(set) var pulseBPM: Double
     @Published private(set) var pulseEnabled: Bool
     @Published private(set) var countersIdle = false
+    @Published private(set) var takingBreak = false
     let pulseEpoch = ProcessInfo.processInfo.systemUptime
     static let completionDuration: TimeInterval = 5.2
     @Published private(set) var sessionTime: TimeInterval = 0
@@ -65,6 +67,7 @@ final class FlowDoModel: ObservableObject {
     private var shuttingDown = false
 
     init(defaults: UserDefaults = .standard) {
+        music = BackgroundMusic(defaults: defaults)
         self.defaults = defaults
         timeStore = TaskTimeStore(defaults: defaults)
         let debug = defaults.bool(forKey: "debugThresholds")
@@ -174,6 +177,7 @@ final class FlowDoModel: ObservableObject {
     func togglePause() {
         if !paused { tick() }
         paused.toggle()
+        music.setSuspended(paused || !suspensions.isEmpty)
         resetEngagement(reason: paused ? "paused" : "resumed")
     }
 
@@ -283,11 +287,13 @@ final class FlowDoModel: ObservableObject {
 
     func suspend(reason: String) {
         suspensions.insert(reason)
+        music.setSuspended(true)
         resetEngagement(reason: reason)
     }
 
     func resume(reason: String) {
         suspensions.remove(reason)
+        music.setSuspended(paused || !suspensions.isEmpty)
         resetEngagement(reason: "resumed")
     }
 
@@ -298,6 +304,7 @@ final class FlowDoModel: ObservableObject {
         engine.reset()
         changeState(to: .idle, animate: false)
         countersIdle = false
+        takingBreak = false
         confidence = 0
     }
 
@@ -325,6 +332,7 @@ final class FlowDoModel: ObservableObject {
         timer?.invalidate()
         tick()
         shuttingDown = true
+        music.shutdown()
         resetEngagement(reason: "app_quit")
         if let task = currentTask { journal?.stopTask(task, total: totalTaskTime, reason: "app_quit") }
         log?.flush()
@@ -358,11 +366,18 @@ final class FlowDoModel: ObservableObject {
         }
         sessionTime = engine.continuousActiveDuration
         countersIdle = engine.isIdle
+        takingBreak = engine.isTakingBreak
         if engine.isIdle { achievementStartedAt = nil }
         changeState(to: engine.state)
         confidence = engine.confidence
         if engine.achievement {
-            achievementStartedAt = max(now, orbTransition.map { $0.startedAt + OrbTransition.duration } ?? now)
+            // Keep transition achievements in the journal, without a pink/red rim
+            // immediately after reaching green. Scheduled checkpoints still glow.
+            if engine.achievementReason == "checkpoint" {
+                achievementStartedAt = max(now, orbTransition.map { $0.startedAt + OrbTransition.duration } ?? now)
+            } else {
+                achievementStartedAt = nil
+            }
             journal?.note("achievement", task: task, session: sessionTime, total: totalTaskTime,
                           reason: engine.achievementReason ?? "checkpoint")
         }

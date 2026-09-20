@@ -37,8 +37,9 @@ heuristics, not scientific measurements.
 
 - Input after explicit session start enters returning.
 - Time accrues throughout the grace window after input.
-- At grace expiry, counters freeze and the state retreats exactly once: green to
-  yellow, or yellow to red. Continued idle holds the reduced state.
+- At grace expiry, counters freeze. Each grace interval retreats another step:
+  green to yellow, yellow to red, then a dim yellow break indicator. Break is a
+  separate automatic-idle flag, not manual Pause; new input resumes engagement.
 - Activity resumes the counters and eligible state. Automatic idle ends one
   logged engagement instance; the next starts with a baseline at the frozen count.
 - Explicit Pause/resume, completion, new task, settings changes, sleep/session
@@ -50,8 +51,9 @@ OrbTransition captures immutable source, destination and monotonic start time.
 Every whirlpool lasts exactly three seconds. Rendering after its end uses its
 explicit destination, never an old source inferred from unrelated timestamps.
 Implicit state-color crossfades were removed. This prevents the previous potential
-red-source fallback after a yellow-to-green swirl. Pink achievements use an outer
-halo so the green center is not replaced by a reddish dot.
+red-source fallback after a yellow-to-green swirl. Reaching green does not display
+a pink halo. Only standalone scheduled checkpoints use the pink outer halo;
+coincident green/checkpoint events remain logged without a halo.
 
 Pink is a transient achievement overlay, not a fourth engagement state. The engine
 emits a one-tick signal when duration crosses green or a multiple of the configured

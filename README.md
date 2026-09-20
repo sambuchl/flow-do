@@ -2,7 +2,7 @@
 
 One intention at a time. A local-first macOS menu-bar app that gently rewards
 sustained engagement. The original Milestone 0–1 native build passed all 16 tests
-on the user’s Mac. The idle/pulse revision requires a fresh Mac build. Music is reserved for Milestone 2.
+on the user’s Mac. The latest revisions, including local MP3 playback, require a fresh Mac build.
 
 ## Repository
 
@@ -12,7 +12,7 @@ on the user’s Mac. The idle/pulse revision requires a fresh Mac build. Music i
 - `references/microblog/`: ignored, read-only architectural reference, never part of FlowDo changes.
 
 The Mac app has no server or account dependency. It makes no network requests.
-Accounts, sync, music, and task backlogs are not implemented. Local activity
+Accounts, sync, layered compositions, and task backlogs are not implemented. Local activity
 logging is optional and off by default.
 
 ## Build and run on macOS
@@ -52,8 +52,8 @@ The app starts at idle after restart, preserving the task.
 
 The orb progresses **red → yellow → green**. Reengagement begins with a three-second
 red/yellow whirlpool; reaching green uses the same yellow/green swirl. Reduce
-Motion disables the swirl. A brief pink halo follows the green transition and marks
-reaching green and recurring engagement checkpoints. Preferences provides a number
+Motion disables the swirl. Green settles without a colored outline. A brief pink
+halo marks recurring engagement checkpoints. Preferences provides a number
 field with **Seconds / Minutes** radio buttons (default every 20 minutes). Blank
 or 0 disables checkpoints. Saving starts a new session, preserving total time.
 
@@ -67,8 +67,8 @@ restart. A new task shows a fresh badge; completion hides it.
 
 Session time counts engagement, including the configurable **Idle grace** (60
 seconds by default). At grace expiry both timers freeze and the orb steps back
-once: green → yellow or yellow → red, using a three-second whirlpool. It holds
-there during continued idle. Activity resumes the frozen counters and the eligible
+at each idle interval: green → yellow → red → dim yellow break. Color retreats
+use a three-second whirlpool. Activity resumes the frozen counters and the eligible
 color. Explicit Pause, settings resets, sleep, and normal quit end the session;
 restart preserves total, not session. Total time is saved periodically and at
 boundaries.
@@ -99,7 +99,15 @@ start/stop values on your Mac:
 python3 scripts/activity_report.py
 ```
 
-No music/volume or launch-at-login controls are exposed in M1.
+In **Preferences → Background music → Choose MP3…**, select a local MP3.
+It starts playing and loops until disabled. Use **Play music**, **Volume**, or
+**Remove MP3** to control it. FlowDo keeps a private local copy, so moving the
+original does not break playback. Nothing is uploaded. Track selection, playback
+preference, and volume survive app restarts (playback starts from the beginning).
+Music continues across task completion, natural idle, and color changes.
+**Pause FlowDo**, system sleep, or switching away from your Mac login session
+pauses playback; resuming continues from the same position.
+Launch-at-login controls are not exposed.
 
 Completing a successfully saved task shows a restrained heart-and-flame flourish
 in the menu bar and task-entry panel: green → pink → dark ember red, then a dim

@@ -28,7 +28,7 @@ struct MenuPopover: View {
                         Button(model.badgeVisible ? "Hide task badge" : "Show task badge") {
                             if model.badgeVisible { model.hideBadge() } else { model.showBadge() }
                         }
-                        Text(model.paused ? "Take your time." :
+                        Text(model.paused || model.takingBreak ? "Take your time." :
                              (model.countersIdle ? "Idle — timers paused" : "Current state: \(model.state.label)"))
                             .font(.callout).foregroundStyle(.secondary)
                         HStack {

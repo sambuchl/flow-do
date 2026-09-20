@@ -6,13 +6,14 @@ struct OrbView: View {
     var animationsEnabled = true
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     private let ember = Color(red: 0.78, green: 0.29, blue: 0.19)
+    private var resting: Bool { model.paused || model.takingBreak }
 
     private var pinkDuration: TimeInterval {
         model.checkpointValue > 0
             ? min(3.2, Double(model.checkpointValue) * model.checkpointUnit.multiplier * 0.7) : 3.2
     }
     private var pulseActive: Bool {
-        animationsEnabled && model.pulseEnabled && !model.paused && model.currentTask != nil && !reduceMotion
+        animationsEnabled && model.pulseEnabled && !resting && model.currentTask != nil && !reduceMotion
     }
     private var needsTimeline: Bool {
         animationsEnabled && !reduceMotion && (pulseActive || model.orbTransition != nil
@@ -33,13 +34,13 @@ struct OrbView: View {
             indicator(at: ProcessInfo.processInfo.systemUptime)
         }
         .frame(width: diameter, height: diameter)
-        .shadow(color: color(for: model.state).opacity(0.25 + model.confidence * 0.45),
+        .shadow(color: (resting ? Color.yellow : color(for: model.state)).opacity(0.25 + model.confidence * 0.45),
                 radius: 1 + model.confidence * 3)
         .opacity(model.completionStartedAt != nil ? 1 :
-                 (model.paused || model.currentTask == nil ? 0.45 : 0.75 + model.confidence * 0.25))
+                 (resting || model.currentTask == nil ? 0.45 : 0.75 + model.confidence * 0.25))
         .frame(width: diameter + 14, height: diameter + 10)
         .accessibilityLabel(model.completionStartedAt != nil ? "FlowDo, task complete" :
-            "FlowDo, \(model.paused ? "paused" : model.state.label)")
+            "FlowDo, \(resting ? "taking a break" : model.state.label)")
     }
 
     @ViewBuilder
@@ -48,7 +49,9 @@ struct OrbView: View {
             completion(elapsed: reduceMotion ? 4.0 : now - start)
         } else {
             ZStack {
-                if let transition = model.orbTransition, transition.progress(at: now) < 1, !reduceMotion {
+                if resting {
+                    Circle().fill(Color.yellow)
+                } else if let transition = model.orbTransition, transition.progress(at: now) < 1, !reduceMotion {
                     whirlpool(transition: transition, now: now).clipShape(Circle())
                 } else {
                     // A transition always settles on its explicit destination, never on

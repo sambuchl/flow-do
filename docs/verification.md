@@ -48,14 +48,15 @@ and terminal-safe task text. They do not substitute for the native tests.
 3. Change its title, then Task Complete!; relaunch and verify there is no current task. Start another.
 4. Enable fast thresholds. Work in another app with keyboard, mouse movement,
    clicks and scrolling; verify a three-second red/yellow swirl, yellow, then a brief
-   yellow/green swirl at green (~20s), followed by a brief pink glow.
+   yellow/green swirl at green (~20s), with no pink/red outline afterward.
    Continued activity stays green.
    Set a checkpoint every 1 minute and keep working; verify pink each minute, then green again.
    Try every 10 seconds using the radio buttons. Test 0/blank, invalid input, and
    settings persistence. Reengagement after idle can earn milestones anew.
 5. With default idle grace, verify 59 seconds of inactivity still counts. At 60
    seconds, both timers freeze and green swirls to yellow (or yellow to red) over
-   three seconds. Continued idle holds that color. Resume input: counters continue
+   three seconds. From green, 120 seconds of idle reaches red and 180 seconds
+   reaches dim yellow break. Resume input: counters continue
    from frozen values. Repeat with a short custom grace and check its exact cutoff.
 6. Pause: no state progression. Resume: fresh returning after activity. Lock,
    switch session, and sleep/wake: no accumulated inactive time.
@@ -80,7 +81,7 @@ and terminal-safe task text. They do not substitute for the native tests.
 13. Run for several hours and inspect Activity Monitor CPU/energy/memory. Check
     task/pause cycles and popover opening do not accumulate timers or observers.
 
-Music, synchronization, launch-at-login and accounts belong to later work. This
+Layered music, synchronization, launch-at-login and accounts belong to later work. This
 checklist is not claimed to have passed inside Linux.
 
 ## Completion and transition revision
@@ -90,8 +91,8 @@ succeeds. Verify green-to-pink flames, dark-red glowing heart, then dim idle cir
 in about five seconds. The task-entry panel shows a larger copy for legibility.
 Start a new task during the effect: it must cancel cleanly. Try completion while
 paused and with Reduce Motion enabled; a manually paused app should stay paused.
-Verify yellow-to-green swirl in both menu-bar and badge orbs; achievement pink
-follows the swirl instead of covering it. Short checkpoint intervals should not
+Verify yellow-to-green swirl in both menu-bar and badge orbs; no pink/red outline
+follows the swirl. Short checkpoint intervals should not
 hide either swirl. These visual changes still require a Mac build/manual check.
 
 ## Idle, pulse and badge revision
@@ -106,7 +107,7 @@ retreat. There are 40 native tests written; they have not run in Linux.
 On a Mac verify:
 
 - Every red/yellow, yellow/green and idle retreat swirl lasts three seconds. Green
-  stays green afterward; achievement pink is a halo rather than a replacement dot.
+  stays green afterward with no pink/red outline. Standalone checkpoints retain their halo.
 - Default Pulse is 70 BPM and both orb copies match. Try a manual BPM, Pause,
   Reduce Motion, and hiding/showing the badge.
 - Collect Pulse focuses the local capture control. Tap Space five times, then
@@ -120,3 +121,19 @@ For this revision, all 24 Swift files passed tree-sitter grammar parsing and the
 Xcode project/source/scheme references passed static checks in Linux. Grammar
 parsing is not Swift type checking, compilation, or execution of the 40 native
 tests. The pulse/idle/badge behavior and energy impact still need Mac verification.
+
+## Local MP3 playback (Mac verification required)
+
+- In Preferences, choose a short MP3. Hear it repeat beyond its end; verify volume
+  and Play music controls. Silence encoded at the file boundaries remains audible.
+- Change orb states and complete/start tasks: music must continue without restarting.
+- Pause/resume FlowDo and sleep/wake the Mac: playback pauses and resumes in place.
+- Cancel the file picker: the existing track and settings remain unchanged.
+- Import an invalid file named `.mp3`: an error appears and the previous track remains.
+- Import a replacement: only the new track plays. Remove MP3 stops playback.
+- Move the original file, quit, and relaunch: the imported copy still plays, with
+  the saved volume and enabled setting. Disabled music stays disabled on relaunch.
+- Try a large file: the menu and engagement timers remain responsive while copying.
+
+The audio player uses Apple's [continuous looping support](https://developer.apple.com/documentation/avfaudio/avaudioplayer/numberofloops).
+Linux static checks cannot validate audio decoding, playback, or the native picker.
